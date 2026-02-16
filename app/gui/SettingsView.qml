@@ -547,6 +547,31 @@ Flickable {
                         }
                     }
 
+                    Label {
+                        text: "?"
+                        font.pointSize: 12
+                        font.bold: true
+                        color: "skyblue"
+                        leftPadding: 5
+                        rightPadding: 5
+                        anchors.verticalCenter: parent.verticalCenter
+
+                        MouseArea {
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.WhatsThisCursor
+
+                            ToolTip.delay: 100
+                            ToolTip.timeout: 10000
+                            ToolTip.visible: containsMouse
+                            ToolTip.text: qsTr("Native resolution uses your display's full resolution for the sharpest image.\n\n" +
+                                               "Half-Native uses half your display's resolution in each dimension, reducing " +
+                                               "pixels streamed by 75% for better performance on slower connections.\n\n" +
+                                               "These options automatically adapt when you switch displays. " +
+                                               "With multiple monitors, the largest resolution is used.")
+                        }
+                    }
+
                     AutoResizingComboBox {
                         property int lastIndexValue
 
