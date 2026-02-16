@@ -148,6 +148,7 @@ public:
     Q_PROPERTY(int maxResolutionWidth MEMBER maxResolutionWidth NOTIFY maxResolutionChanged)
     Q_PROPERTY(int maxResolutionHeight MEMBER maxResolutionHeight NOTIFY maxResolutionChanged)
     Q_PROPERTY(bool nativeResolution MEMBER nativeResolution NOTIFY nativeResolutionChanged)
+    Q_PROPERTY(bool halfNativeResolution MEMBER halfNativeResolution NOTIFY halfNativeResolutionChanged)
 
     Q_INVOKABLE bool retranslate();
 
@@ -193,6 +194,7 @@ public:
     int maxResolutionWidth;
     int maxResolutionHeight;
     bool nativeResolution;
+    bool halfNativeResolution;
 
 signals:
     void displayModeChanged();
@@ -232,6 +234,7 @@ signals:
     void languageChanged();
     void maxResolutionChanged();
     void nativeResolutionChanged();
+    void halfNativeResolutionChanged();
 
 private:
     explicit StreamingPreferences(QQmlEngine *qmlEngine);

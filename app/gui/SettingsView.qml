@@ -141,7 +141,7 @@ Flickable {
 
                                 if (rect.width === existing_width && rect.height === existing_height) {
                                     // Skip if this exact native resolution was already added
-                                    if (resolutionListModel.get(j).is_native) {
+                                    if (resolutionListModel.get(j).type === "native") {
                                         indexToAdd = -1
                                         break
                                     }
@@ -162,10 +162,42 @@ Flickable {
                                                                "text": friendlyNamePrefix+" ("+rect.width+"x"+rect.height+")",
                                                                "video_width": ""+rect.width,
                                                                "video_height": ""+rect.height,
-                                                               "is_custom": false,
-                                                               "is_native": true
+                                                               "type": "native"
                                                            })
                             }
+                        }
+
+                        function addHalfNativeResolution(nativeRect) {
+                            var halfWidth = Math.floor(nativeRect.width / 2)
+                            var halfHeight = Math.floor(nativeRect.height / 2)
+
+                            // Find position to insert (sorted by resolution size)
+                            var indexToAdd = 0
+                            for (var j = 0; j < resolutionComboBox.count; j++) {
+                                var existing_width = parseInt(resolutionListModel.get(j).video_width);
+                                var existing_height = parseInt(resolutionListModel.get(j).video_height);
+
+                                if (halfWidth === existing_width && halfHeight === existing_height) {
+                                    // Skip if this exact half-native resolution was already added
+                                    if (resolutionListModel.get(j).type === "half_native") {
+                                        return
+                                    }
+                                    // Insert after the matching preset
+                                    indexToAdd = j + 1
+                                    break
+                                }
+                                else if (halfWidth * halfHeight > existing_width * existing_height) {
+                                    indexToAdd = j + 1
+                                }
+                            }
+
+                            resolutionListModel.insert(indexToAdd,
+                                                       {
+                                                           "text": qsTr("Half-Native")+" ("+halfWidth+"x"+halfHeight+")",
+                                                           "video_width": ""+halfWidth,
+                                                           "video_height": ""+halfHeight,
+                                                           "type": "half_native"
+                                                       })
                         }
 
                         // ignore setting the index at first, and actually set it when the component is loaded
@@ -186,6 +218,7 @@ Flickable {
                                 }
 
                                 addDetectedResolution(qsTr("Native"), screenRect)
+                                addHalfNativeResolution(screenRect)
 
                                 // Only add safe area option if it differs from native (e.g., notched displays)
                                 if (safeAreaRect.width !== screenRect.width || safeAreaRect.height !== screenRect.height) {
@@ -213,14 +246,47 @@ Flickable {
                             var saved_height = StreamingPreferences.height
                             var index_set = false
 
-                            // If native resolution was previously selected, find the first native entry
+                            // If native resolution was previously selected, find the largest native entry
+                            // (don't match by dimensions - the monitor may have changed)
                             if (StreamingPreferences.nativeResolution) {
+                                var bestIndex = -1
+                                var bestPixels = 0
                                 for (var i = 0; i < resolutionListModel.count; i++) {
-                                    if (resolutionListModel.get(i).is_native) {
-                                        currentIndex = i
-                                        index_set = true
-                                        break
+                                    if (resolutionListModel.get(i).type === "native") {
+                                        var el_width = parseInt(resolutionListModel.get(i).video_width)
+                                        var el_height = parseInt(resolutionListModel.get(i).video_height)
+                                        var pixels = el_width * el_height
+                                        if (pixels > bestPixels) {
+                                            bestPixels = pixels
+                                            bestIndex = i
+                                        }
                                     }
+                                }
+                                if (bestIndex >= 0) {
+                                    currentIndex = bestIndex
+                                    index_set = true
+                                }
+                            }
+
+                            // If half-native resolution was previously selected, find the largest half-native entry
+                            // (don't match by dimensions - the monitor may have changed)
+                            if (!index_set && StreamingPreferences.halfNativeResolution) {
+                                var bestIndex = -1
+                                var bestPixels = 0
+                                for (var i = 0; i < resolutionListModel.count; i++) {
+                                    if (resolutionListModel.get(i).type === "half_native") {
+                                        var el_width = parseInt(resolutionListModel.get(i).video_width)
+                                        var el_height = parseInt(resolutionListModel.get(i).video_height)
+                                        var pixels = el_width * el_height
+                                        if (pixels > bestPixels) {
+                                            bestPixels = pixels
+                                            bestIndex = i
+                                        }
+                                    }
+                                }
+                                if (bestIndex >= 0) {
+                                    currentIndex = bestIndex
+                                    index_set = true
                                 }
                             }
 
@@ -244,8 +310,7 @@ Flickable {
                                                                "text": qsTr("Custom")+" ("+StreamingPreferences.width+"x"+StreamingPreferences.height+")",
                                                                "video_width": ""+StreamingPreferences.width,
                                                                "video_height": ""+StreamingPreferences.height,
-                                                               "is_custom": true,
-                                                               "is_native": false
+                                                               "type": "custom"
                                                            })
                                 currentIndex = resolutionListModel.count - 1
                             }
@@ -254,8 +319,7 @@ Flickable {
                                                                "text": qsTr("Custom"),
                                                                "video_width": "",
                                                                "video_height": "",
-                                                               "is_custom": true,
-                                                               "is_native": false
+                                                               "type": "custom"
                                                            })
                             }
 
@@ -277,39 +341,37 @@ Flickable {
                                 text: qsTr("720p")
                                 video_width: "1280"
                                 video_height: "720"
-                                is_custom: false
-                                is_native: false
+                                type: "preset"
                             }
                             ListElement {
                                 text: qsTr("1080p")
                                 video_width: "1920"
                                 video_height: "1080"
-                                is_custom: false
-                                is_native: false
+                                type: "preset"
                             }
                             ListElement {
                                 text: qsTr("1440p")
                                 video_width: "2560"
                                 video_height: "1440"
-                                is_custom: false
-                                is_native: false
+                                type: "preset"
                             }
                             ListElement {
                                 text: qsTr("4K")
                                 video_width: "3840"
                                 video_height: "2160"
-                                is_custom: false
-                                is_native: false
+                                type: "preset"
                             }
                         }
 
                         function updateBitrateForSelection() {
                             var selectedWidth = parseInt(resolutionListModel.get(currentIndex).video_width)
                             var selectedHeight = parseInt(resolutionListModel.get(currentIndex).video_height)
-                            var isNative = resolutionListModel.get(currentIndex).is_native
+                            var isNative = resolutionListModel.get(currentIndex).type === "native"
+                            var isHalfNative = resolutionListModel.get(currentIndex).type === "half_native"
 
-                            // Track whether a native resolution is selected
+                            // Track whether a native or half-native resolution is selected
                             StreamingPreferences.nativeResolution = isNative
+                            StreamingPreferences.halfNativeResolution = isHalfNative
 
                             // Apply max resolution limits for native resolutions
                             if (isNative) {
@@ -340,7 +402,7 @@ Flickable {
 
                         // ::onActivated must be used, as it only listens for when the index is changed by a human
                         onActivated : {
-                            if (resolutionListModel.get(currentIndex).is_custom) {
+                            if (resolutionListModel.get(currentIndex).type === "custom") {
                                 customResolutionDialog.open()
                             }
                             else {
@@ -399,7 +461,7 @@ Flickable {
 
                                 // Find and update the custom entry
                                 for (var i = 0; i < resolutionListModel.count; i++) {
-                                    if (resolutionListModel.get(i).is_custom) {
+                                    if (resolutionListModel.get(i).type === "custom") {
                                         resolutionListModel.setProperty(i, "video_width", width)
                                         resolutionListModel.setProperty(i, "video_height", height)
                                         resolutionListModel.setProperty(i, "text", "Custom ("+width+"x"+height+")")
@@ -715,7 +777,7 @@ Flickable {
                     width: parent.width
                     height: maxResRow.height + 5
                     visible: resolutionComboBox.currentIndex >= 0 &&
-                             resolutionListModel.get(resolutionComboBox.currentIndex).is_native
+                             resolutionListModel.get(resolutionComboBox.currentIndex).type === "native"
 
                     Row {
                         id: maxResRow

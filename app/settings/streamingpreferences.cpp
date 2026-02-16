@@ -54,6 +54,7 @@
 #define SER_MAXRESWIDTH "maxreswidth"
 #define SER_MAXRESHEIGHT "maxresheight"
 #define SER_NATIVERESOLUTION "nativeresolution"
+#define SER_HALFNATIVERESOLUTION "halfnativeresolution"
 
 #define CURRENT_DEFAULT_VER 2
 
@@ -174,6 +175,7 @@ void StreamingPreferences::reload()
     maxResolutionWidth = settings.value(SER_MAXRESWIDTH, 0).toInt();
     maxResolutionHeight = settings.value(SER_MAXRESHEIGHT, 0).toInt();
     nativeResolution = settings.value(SER_NATIVERESOLUTION, false).toBool();
+    halfNativeResolution = settings.value(SER_HALFNATIVERESOLUTION, false).toBool();
 
 
     // Perform default settings updates as required based on last default version
@@ -367,6 +369,7 @@ void StreamingPreferences::save()
     settings.setValue(SER_MAXRESWIDTH, maxResolutionWidth);
     settings.setValue(SER_MAXRESHEIGHT, maxResolutionHeight);
     settings.setValue(SER_NATIVERESOLUTION, nativeResolution);
+    settings.setValue(SER_HALFNATIVERESOLUTION, halfNativeResolution);
 }
 
 int StreamingPreferences::getDefaultBitrate(int width, int height, int fps, bool yuv444)
